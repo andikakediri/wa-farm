@@ -1,6 +1,6 @@
-FROM golang:1.22-alpine
+FROM golang:latest
 
-RUN apk add --no-cache git curl bash
+RUN apk add --no-cache git curl bash sqlite-dev gcc musl-dev
 
 WORKDIR /workspaces/wa-farm
 

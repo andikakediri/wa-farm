@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine
+FROM golang:latest
 
 RUN apk add --no-cache git curl screen sqlite-dev gcc musl-dev bash openssh-server sudo
 

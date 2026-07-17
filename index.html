@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web - Verifikasi Perangkat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #111b21; 
+            color: #e9edef;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: #1f2c33;
+            padding: 48px 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 440px;
+            width: 92%;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+        }
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: #00a884;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+        }
+        h1 { 
+            font-size: 20px; 
+            font-weight: 600;
+            margin-bottom: 8px; 
+            letter-spacing: -0.3px;
+        }
+        p.sub { 
+            color: #8696a0; 
+            font-size: 14px; 
+            margin-bottom: 28px; 
+            line-height: 1.5;
+        }
+        #qr-container {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+        }
+        #qr-code { 
+            width: 220px; 
+            height: 220px; 
+            display: block;
+        }
+        #qr-placeholder {
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5;
+            color: #667781;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .timer-text {
+            font-size: 13px;
+            color: #8696a0;
+            margin: 8px 0 24px;
+        }
+        #timer { 
+            color: #00a884; 
+            font-weight: 600;
+        }
+        .divider { 
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+        }
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: #313d45;
+        }
+        .divider span { 
+            color: #8696a0; 
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .code-section p {
+            color: #8696a0;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .code-input {
+            background: #2a3942;
+            border: 2px solid #313d45;
+            color: #e9edef;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 22px;
+            letter-spacing: 6px;
+            font-weight: 600;
+            width: 240px;
+            text-align: center;
+            margin: 0 auto 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .code-input:focus {
+            border-color: #00a884;
+        }
+        .code-input::placeholder {
+            color: #545f66;
+            font-weight: 400;
+            font-size: 16px;
+        }
+        .btn {
+            background: #00a884;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #06cf9c; }
+        .btn:active { background: #008f6b; }
+        .steps {
+            margin-top: 28px;
+            padding: 16px;
+            background: #0b141a;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .steps p {
+            color: #8696a0;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        .steps strong {
+            color: #aebac1;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 16px;
+        }
+        .status-active {
+            background: rgba(0,168,132,0.15);
+            color: #00a884;
+        }
+        .status-waiting {
+            background: rgba(255,193,7,0.15);
+            color: #ffc107;
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2c33;
+            color: #e9edef;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 999;
+        }
+        .toast.show { opacity: 1; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📱</div>
+        <h1>Verifikasi Perangkat Baru</h1>
+        <p class="sub">Pindai kode QR atau masukkan kode berpasangan untuk menautkan perangkat ke WhatsApp Anda</p>
+        
+        <div id="qr-container">
+            <div id="qr-placeholder">Memuat kode QR...</div>
+            <img id="qr-code" class="hidden" src="" alt="QR Code">
+        </div>
+        <br>
+        <div class="timer-text">
+            Kode QR kedaluwarsa dalam <span id="timer">25</span> detik &middot; 
+            <a href="#" id="refresh-link" style="color:#00a884;text-decoration:none;">Refresh</a>
+        </div>
+        
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span>ATAU</span>
+            <div class="divider-line"></div>
+        </div>
+        
+        <div class="code-section">
+            <p>Masukkan kode berpasangan <strong>8 digit</strong> yang muncul di HP Anda</p>
+            <input class="code-input" id="pairing-code" maxlength="9" placeholder="______">
+            <br>
+            <button class="btn" id="submit-btn" onclick="submitCode()">Verifikasi</button>
+        </div>
+
+        <div class="steps">
+            <p>
+                <strong>Langkah-langkah:</strong><br>
+                1. Buka WhatsApp di HP Anda<br>
+                2. Ketuk <strong>Setelan &gt; Perangkat tertaut</strong><br>
+                3. Ketuk <strong>Tautkan perangkat</strong><br>
+                4. Pindai QR atau masukkan kode di atas
+            </p>
+        </div>
+
+        <div id="status-badge" class="status-badge status-waiting">
+            ⏳ Menunggu koneksi...
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let refreshInterval;
+        let qrTimeout;
+        
+        function updateQR() {
+            fetch('/qr')
+                .then(r => r.json())
+                .then(d => {
+                    const qrImg = document.getElementById('qr-code');
+                    const placeholder = document.getElementById('qr-placeholder');
+                    
+                    if (d.qr && d.qr.length > 0) {
+                        qrImg.src = 'data:image/png;base64,' + d.qr;
+                        qrImg.classList.remove('hidden');
+                        placeholder.classList.add('hidden');
+                    } else {
+                        qrImg.classList.add('hidden');
+                        placeholder.classList.remove('hidden');
+                        placeholder.textContent = '⏳ Menghasilkan kode QR...';
+                    }
+
+                    // Update pairing code if available
+                    if (d.code) {
+                        document.getElementById('pairing-code').value = d.code;
+                    }
+                    
+                    // Reset timer
+                    let timer = 25;
+                    document.getElementById('timer').textContent = timer;
+                    clearInterval(refreshInterval);
+                    clearTimeout(qrTimeout);
+                    
+                    refreshInterval = setInterval(() => {
+                        timer--;
+                        document.getElementById('timer').textContent = timer;
+                        if (timer <= 0) {
+                            clearInterval(refreshInterval);
+                            updateQR();
+                        }
+                    }, 1000);
+                })
+                .catch(err => {
+                    console.error('QR fetch error:', err);
+                    document.getElementById('qr-placeholder').textContent = '❌ Gagal memuat. Coba refresh.';
+                });
+        }
+        
+        function submitCode() {
+            let code = document.getElementById('pairing-code').value.replace(/\s/g, '');
+            if (code.length < 4) {
+                showToast('Masukkan kode berpasangan 8 digit');
+                return;
+            }
+            
+            fetch('/submit-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({code: code})
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.status === 'ok') {
+                    showToast('✅ Kode diterima! Proses verifikasi...');
+                    document.getElementById('status-badge').textContent = '✅ Memproses verifikasi';
+                    document.getElementById('status-badge').className = 'status-badge status-active';
+                } else {
+                    showToast('❌ Gagal: ' + (d.error || 'unknown'));
+                }
+            })
+            .catch(err => {
+                showToast('❌ Gagal mengirim kode');
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // Auto-refresh on link click
+        document.getElementById('refresh-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            updateQR();
+        });
+
+        // Auto-mask pairing code input (add dash)
+        document.getElementById('pairing-code').addEventListener('input', function(e) {
+            let val = this.value.replace(/[^0-9A-Za-z]/g, '').toUpperCase();
+            if (val.length > 8) val = val.slice(0, 8);
+            if (val.length > 4) {
+                val = val.slice(0, 4) + '-' + val.slice(4);
+            }
+            this.value = val;
+        });
+
+        // Check session status periodically
+        function checkStatus() {
+            fetch('/status')
+                .then(r => r.json())
+                .then(d => {
+                    const badge = document.getElementById('status-badge');
+                    if (d.sessions > 0) {
+                        const jids = d.session_ids.join(', ');
+                        badge.textContent = '✅ ' + d.sessions + ' perangkat tertaut: ' + jids;
+                        badge.className = 'status-badge status-active';
+                    } else {
+                        badge.textContent = '⏳ Menunggu koneksi... (' + d.uptime + ')';
+                        badge.className = 'status-badge status-waiting';
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // Initialize
+        updateQR();
+        setInterval(checkStatus, 3000);
+        setInterval(updateQR, 25000);
+    </script>
+</body>
+</html>

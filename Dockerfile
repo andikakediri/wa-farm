@@ -1,23 +1,12 @@
 FROM golang:1.22-alpine
 
-RUN apk add --no-cache git curl screen sqlite-dev gcc musl-dev
+RUN apk add --no-cache git curl screen sqlite-dev gcc musl-dev bash
 
-WORKDIR /app
+WORKDIR /workspaces/wa-farm
 
-# Clone & build whatsmeow
-RUN git clone https://github.com/tulir/whatsmeow && \
-    cd whatsmeow && \
-    go build -o /app/wabot ./example/
-
-# Copy server files
-COPY server.go .
-COPY index.html .
-COPY go.mod .
-COPY go.sum .
-
-RUN go mod tidy
-RUN go build -o /app/server server.go
+# Pre-clone whatsmeow for faster setup
+RUN git clone https://github.com/tulir/whatsmeow /workspaces/wa-farm/whatsmeow
 
 EXPOSE 8080
 
-CMD ["/app/server"]
+CMD ["sleep", "infinity"]

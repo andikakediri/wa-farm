@@ -1,41 +1,39 @@
 #!/bin/bash
+exec > /tmp/post-create.log 2>&1
+set -x
 
 echo "================================================"
 echo "  WA Farm - Auto Setup"
 echo "================================================"
-echo ""
+date
 
 cd /workspaces/wa-farm
 
 # Step 1: Initialize Go modules
 echo "[1/4] Initializing Go modules..."
 go mod tidy 2>&1
+echo "go mod tidy done"
 
 echo ""
-echo "[2/4] Building whatsmeow (WhatsApp protocol library)..."
-cd whatsmeow
-go build -o /workspaces/wa-farm/wabot ./example/ 2>&1
-cd /workspaces/wa-farm
-
-echo ""
-echo "[3/4] Building server..."
+echo "[2/4] Building server (simulation mode - no wabot)..."
 go build -o server server.go 2>&1
+echo "Build exit code: $?"
 
 echo ""
-echo "[4/4] Starting server..."
-nohup ./server > server.log 2>&1 &
+echo "[3/4] Starting server..."
+pkill -f "server$" 2>/dev/null || true
+nohup ./server > /tmp/server.log 2>&1 &
 SERVER_PID=$!
-echo "Server running on PID: $SERVER_PID"
+echo "Server PID: $SERVER_PID"
+sleep 2
+
+echo ""
+echo "[4/4] Checking server..."
+curl -s http://localhost:8080/status || echo "Server not responding yet"
 
 echo ""
 echo "================================================"
-echo "  ✅ SERVER RUNNING!"
-echo "  Port: 8080"
-echo "  PID: $SERVER_PID"
-echo ""
-echo "  Akses landing page:"
-echo "  https://[CODESPACE_NAME]-8080.preview.app.github.dev"
-echo ""
-echo "  Check status:"
-echo "  curl http://localhost:8080/status"
+echo "  Server PID: $SERVER_PID"
+echo "  Log: /tmp/server.log"
+echo "  Post-create log: /tmp/post-create.log"
 echo "================================================"
